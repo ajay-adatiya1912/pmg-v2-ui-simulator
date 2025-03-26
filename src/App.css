@@ -1,0 +1,144 @@
+#root {
+  min-width: 100%;
+  margin: 0 0;
+  padding: 1rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+.run-algo {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.accordion-div {
+  height: 430px;
+  overflow: auto;
+  background-color: #fff;
+  resize: vertical;
+  border-width: thin;
+  border-radius: 5px;
+  box-shadow: 1px 1px 5px 1px #c9c9c9;
+}
+
+.display-table {
+  border-radius: 10px !important;
+  box-shadow: 1px 2px 5px 2px #c9c9c9;
+}
+
+.th {
+  background-color: #5A7EB7 !important;
+  color: #fff !important;
+  vertical-align: middle !important;
+  font-weight: bolder !important;
+  height: 51px !important;
+}
+
+.thead {
+  border-radius: 10px !important;
+}
+
+.form-control {
+  border: 1px solid #c9c9c9;
+}
+
+.runAlgoBtn {
+  border: none;
+  background-color: #5A7EB7;
+  color: white;
+  margin: 2rem 0.8rem;
+  margin-bottom: 0.2rem;
+  text-align: center;
+  border-radius: 10px;
+  padding: 0.8rem 1.2rem;
+  width: 120px;
+}
+
+.runAlgoBtn:disabled {
+  background-color: #cbbed6;
+}
+
+.configBtn {
+  border: none;
+  background-color: #5A7EB7;
+  color: white;
+  margin: 2rem 0.8rem;
+  margin-bottom: 0.2rem;
+  text-align: center;
+  border-radius: 10px;
+  padding: 0.8rem 1.2rem;
+  width: 140px;
+}
+
+.resetBtn {
+  border: none;
+  background-color: #AC2E19;
+  color: white;
+  margin: 2rem 0.8rem;
+  margin-bottom: 0.2rem;
+  text-align: center;
+  border-radius: 10px;
+  padding: 0.8rem 1.2rem;
+  width: 120px;
+}
+
+.saveBtn {
+  background-color: #5A7EB7;
+  color: #fff;
+}
+
+.saveBtn:hover,
+.saveBtn:focus {
+  background-color: #5A7EB7;
+  color: #fff;
+}
+
+.closeBtn {
+  background-color: #AC2E19;
+  color: #fff;
+}
+
+.closeBtn:hover,
+.closeBtn:focus {
+  background-color: #AC2E19;
+  color: #fff;
+}
