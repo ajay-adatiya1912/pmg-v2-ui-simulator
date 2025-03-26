@@ -2,6 +2,11 @@ import proposeNewMeterValue from "./proposeNewMeterValue";
 
 export const getInitialData = () => {
   const savedData = localStorage.getItem("chargingData");
+  let previousTotalPower = 0;
+
+  if (localStorage.getItem("previousTotalPower")) {
+    previousTotalPower = parseInt(localStorage.getItem("previousTotalPower"));
+  }
 
   if (savedData) {
     return JSON.parse(savedData);
@@ -17,10 +22,13 @@ export const getInitialData = () => {
       timeStamp: new Date(),
       pmgSettings: parsedPmgObj.pmgSettings,
       connectorList: filteredConnectors.map((connector) => {
-        const newMeterValue = proposeNewMeterValue(
-          0,
-          connector.connectorDefaultPower
-        );
+        const currentTXvalue =
+          parsedPmgObj.pmgSettings.pmgMaxPower - previousTotalPower >
+          connector.connectorDefaultPower * 1000
+            ? connector.connectorDefaultPower * 1000
+            : parsedPmgObj.pmgSettings.pmgMaxPower - previousTotalPower;
+
+        const newMeterValue = proposeNewMeterValue(0, currentTXvalue / 1000);
 
         return {
           connectorId: connector.connectorId,
@@ -29,7 +37,7 @@ export const getInitialData = () => {
           CSMaxPower: connector.CSMaxPower,
           connectorMaxPower: connector.connectorMaxPower,
           connectorDefaultPower: connector.connectorDefaultPower,
-          currentTXvalue: connector.connectorDefaultPower * 1000,
+          currentTXvalue: currentTXvalue,
           metadata: {
             settleTime: parsedPmgObj.pmgSettings.settleTimeParameter,
             lowThreshold: null,
