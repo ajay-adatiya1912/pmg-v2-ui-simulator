@@ -43,7 +43,7 @@ export const getInitialData = () => {
           ],
           ocppIdentityKey: `CS_${connector.chargeStationId}`,
           cpo_id: 1,
-          currentAllocatedValue: 0
+          currentAllocatedValue: 0,
         };
       }),
     };

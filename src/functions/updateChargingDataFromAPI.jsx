@@ -31,7 +31,7 @@ const updateChargingDataFromAPI = (chargingData, data) => {
       const proposedPowerAllocationValue =
         data.data.connectorList[index].proposedPowerAllocationValue;
       const currentAllocatedValue =
-        data.data.connectorList[index].currentAllocatedValue;
+        data.data.connectorList[index].currentPowerAllocatedValue;
 
       previousTotalPower =
         previousTotalPower +
