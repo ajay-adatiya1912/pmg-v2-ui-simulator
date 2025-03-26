@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { getCallCount, incrementCallCount } from "./callCount";
 import proposeNewMeterValue from "./proposeNewMeterValue";
 import { updateChargingDataHistory } from "./updateChargingDataHistory";
@@ -31,6 +30,8 @@ const updateChargingDataFromAPI = (chargingData, data) => {
         updatedChargingData.pmgSettings.powerBlockAllocationSize; // from pmgSettings
       const proposedPowerAllocationValue =
         data.data.connectorList[index].proposedPowerAllocationValue;
+      const currentAllocatedValue =
+        data.data.connectorList[index].currentAllocatedValue;
 
       previousTotalPower =
         previousTotalPower +
@@ -53,7 +54,8 @@ const updateChargingDataFromAPI = (chargingData, data) => {
           settleTime: data.data.connectorList[index].metadata.settleTime,
           highThreshold: data.data.connectorList[index].metadata.highThreshold,
           lowThreshold: data.data.connectorList[index].metadata.lowThreshold,
-        }
+        },
+        currentAllocatedValue: currentAllocatedValue,
       };
     }
   );
@@ -111,7 +113,10 @@ const updateChargingDataFromAPI = (chargingData, data) => {
             date: new Date(),
             value: newMeterValue,
           },
-        ]
+        ],
+        ocppIdentityKey: `CS_${filteredConnector.chargeStationId}`,
+        cpo_id: 1,
+        currentAllocatedValue: 0,
       });
     }
   });
