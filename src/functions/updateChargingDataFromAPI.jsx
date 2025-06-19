@@ -1,18 +1,22 @@
-import { useState } from "react";
+import { useContext } from "react";
 import { getCallCount, incrementCallCount } from "./callCount";
 import proposeNewMeterValue from "./proposeNewMeterValue";
 import { updateChargingDataHistory } from "./updateChargingDataHistory";
+import { PmgPowerValuesContext } from "../context/PmgAlgoContext";
 
 const updateChargingDataFromAPI = (chargingData, data) => {
+  debugger;
+  const pmgPowerValuesContext = useContext(PmgPowerValuesContext);
   const pmgObj = localStorage.getItem("pmgObj");
   const parsedPmgObj = JSON.parse(pmgObj);
   const callCount = getCallCount();
   let previousTotalPower = 0;
-  const filteredConnectors = parsedPmgObj.connectorsDetails.filter(
+  const { minimumPowerPerConnector, connectorsDetails, pmgSettings } = parsedPmgObj;
+  const filteredConnectors = connectorsDetails.filter(
     (connector) => connector.chargingStartedAt === callCount + 1
   );
 
-  const removeConnectors = parsedPmgObj.connectorsDetails.filter(
+  const removeConnectors = connectorsDetails.filter(
     (connector) => connector.chargingStoppedAt === callCount + 1
   );
 
@@ -59,6 +63,7 @@ const updateChargingDataFromAPI = (chargingData, data) => {
   );
 
   localStorage.setItem("previousTotalPower", previousTotalPower);
+  pmgPowerValuesContext.updateAvailablePower(pmgPowerValuesContext.totalPower - previousTotalPower);
 
   updateChargingDataHistory(chargingData, updatedChargingData);
 
@@ -70,23 +75,32 @@ const updateChargingDataFromAPI = (chargingData, data) => {
   });
 
   filteredConnectors.forEach((filteredConnector) => {
+    const { 
+      connectorDefaultPower,
+      connectorId,
+      chargeStationId,
+      CSMaxPower,
+      connectorMaxPower 
+    } = filteredConnector;
+
     const exists = updatedChargingData.connectorList.some(
-      (connector) => connector.connectorId === filteredConnector.connectorId
+      (connector) => connector.connectorId === connectorId
     );
 
     if (!exists) {
-      console.log(
-        "before proposeNewMeterValue",
-        filteredConnector,
-        parsedPmgObj
-      );
-
+      // console.log(
+      //   "before proposeNewMeterValue",
+      //   filteredConnector,
+      //   parsedPmgObj
+      // );
       // debugger;
-      const currentTXvalue =
-        parsedPmgObj.pmgSettings.pmgMaxPower - previousTotalPower >
-        filteredConnector.connectorDefaultPower * 1000
-          ? filteredConnector.connectorDefaultPower * 1000
-          : parsedPmgObj.pmgSettings.pmgMaxPower - previousTotalPower;
+      let currentTXvalue =
+        pmgSettings.pmgMaxPower - previousTotalPower >
+        connectorDefaultPower * 1000
+          ? connectorDefaultPower * 1000
+          : pmgSettings.pmgMaxPower - previousTotalPower;
+        
+      currentTXvalue = currentTXvalue < minimumPowerPerConnector ? 0 : currentTXvalue;
 
       previousTotalPower = previousTotalPower + currentTXvalue;
 
@@ -94,15 +108,15 @@ const updateChargingDataFromAPI = (chargingData, data) => {
 
       // Add the missing connector
       updatedChargingData.connectorList.push({
-        connectorId: filteredConnector.connectorId,
-        chargeStationId: filteredConnector.chargeStationId,
+        connectorId: connectorId,
+        chargeStationId: chargeStationId,
         sessionId: 1,
-        CSMaxPower: filteredConnector.CSMaxPower,
-        connectorMaxPower: filteredConnector.connectorMaxPower,
-        connectorDefaultPower: filteredConnector.connectorDefaultPower,
-        currentTXvalue: currentTXvalue,
+        CSMaxPower: CSMaxPower,
+        connectorMaxPower: connectorMaxPower,
+        connectorDefaultPower: connectorDefaultPower,
+        currentTXvalue,
         metadata: {
-          settleTime: parsedPmgObj.pmgSettings.settleTimeParameter,
+          settleTime: pmgSettings.settleTimeParameter,
           lowThreshold: null,
           highThreshold: null,
         },

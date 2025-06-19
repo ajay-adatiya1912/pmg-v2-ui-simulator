@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useContext } from "react";
 import { getInitialData } from "../functions/getInitialData";
 import { callPmgAlgoV2API } from "../functions/callPmgAlgoV2API";
 import Table from "@mui/joy/Table";
@@ -8,7 +8,8 @@ import MuiAccordion from "@mui/material/Accordion";
 import MuiAccordionSummary from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
-import { Tooltip, tooltipClasses } from "@mui/material";
+import { Paper, Tooltip, tooltipClasses } from "@mui/material";
+import { PmgPowerValuesContext } from "../context/PmgAlgoContext";
 
 const Accordion = styled((props) => (
   <MuiAccordion disableGutters elevation={0} square {...props} />
@@ -68,6 +69,7 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
   paddingTop: 0,
   borderTop: "1px solid rgba(0, 0, 0, 0)",
 }));
+
 
 const RunAlgo = ({ resetValues, modalHandle }) => {
   const [chargingData, setChargingData] = useState(getInitialData);
@@ -132,28 +134,20 @@ const RunAlgo = ({ resetValues, modalHandle }) => {
   };
 
   const updateConnector = () => {
-    // const hasValidMeterReads = chargingData.connectorList.some(
-    //   (x) => x.previousMeterReads[0].value !== 0
-    // );
-
-    // if (!hasValidMeterReads) {
-    //   console.log("No valid meter reads found. Exiting updateConnector.");
-    //   setIsDisabled(true);
-    //   return;
-    // }
     setIsDisabled(true);
-    callPmgAlgoV2API(chargingData)
-      .then((updatedChargingData) => {
-        setChargingData(updatedChargingData);
-        setChargingDataHistory(
-          JSON.parse(localStorage.getItem("chargingDataHistory"))
-        );
-        setExpanded(`panel${chargingDataHistory.length - 1}`);
-      })
-      .catch((error) => {
-        // Handle the error as needed
-        //console.error("Failed to update charging data:", error);
-      });
+    const { callAPI } = callPmgAlgoV2API;
+    // callPmgAlgoV2API(chargingData)
+    //   .then((updatedChargingData) => {
+    //     setChargingData(updatedChargingData);
+    //     setChargingDataHistory(
+    //       JSON.parse(localStorage.getItem("chargingDataHistory"))
+    //     );
+    //     setExpanded(`panel${chargingDataHistory.length - 1}`);
+    //   })
+    //   .catch((error) => {
+    //     // Handle the error as needed
+    //     //console.error("Failed to update charging data:", error);
+    //   });
   };
 
   const handleChange = (panel) => (event, newExpanded) => {
@@ -170,6 +164,8 @@ const RunAlgo = ({ resetValues, modalHandle }) => {
       }
     }
   }, [chargingDataHistory]);
+
+  const pmgContext = useContext(PmgPowerValuesContext);
 
   return (
     <>
@@ -375,6 +371,15 @@ const RunAlgo = ({ resetValues, modalHandle }) => {
         )}
 
         <div className="seperator mt-5 mb-2"></div>
+
+        <Paper elevation={0} sx={{ display: 'flex', justifyContent: 'space-around', width: '100%', mb: 1 }}>
+        <Typography variant="h5" gutterBottom>
+          Total Power: { pmgContext.totalPower }
+        </Typography>
+        <Typography variant="h5" gutterBottom>
+          Available Power: { pmgContext.availablePower }
+        </Typography>
+        </Paper>
 
         <Table aria-label="basic table" className="display-table">
           <thead className="thead">

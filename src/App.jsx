@@ -1,15 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { ConfigModal } from "./components/configModal";
 import RunAlgo from "./components/runAlgorithm";
-import saveDefaultPmgObj from "./functions/saveDefaultPmgObj";
+import saveDefaultPmgObj, { pmgObj } from "./functions/saveDefaultPmgObj";
 import "./App.css";
+import { PmgPowerValuesContext } from "./context/PmgAlgoContext";
 
 function App() {
   saveDefaultPmgObj();
   const [isModelOpen, setIsModelOpen] = useState(false);
   const [isAlgoOpen, setIsAlgoOpen] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
+
+  const pmgContext = useContext(PmgPowerValuesContext);
+  
+  useEffect(() => {
+    console.log("pmgContext =>> ", pmgObj);
+    pmgContext.updateTotalPower(pmgObj.pmgSettings.pmgMaxPower);
+    pmgContext.updateAvailablePower(pmgObj.pmgSettings.pmgMaxPower);
+  }, []);
 
   useEffect(() => {
     if (!localStorage.getItem("pmgObj")) {
@@ -48,7 +57,7 @@ function App() {
 
   return (
     <>
-      <ConfigModal open={isModelOpen} setOpen={setIsModelOpen} />
+    <ConfigModal open={isModelOpen} setOpen={setIsModelOpen} />
       {isAlgoOpen && (
         <RunAlgo resetValues={resetAllValues} modalHandle={modalHandler} />
       )}

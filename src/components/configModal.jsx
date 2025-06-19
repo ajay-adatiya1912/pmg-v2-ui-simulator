@@ -1,7 +1,7 @@
 import { Modal, TextField } from "@mui/material";
 import { FieldArray, Formik } from "formik";
 import * as Yup from "yup";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -9,6 +9,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import { Alert } from "@mui/material";
 import { getInitialData } from "../functions/getInitialData";
 import RunAlgo from "./runAlgorithm";
+import { PmgPowerValuesContext } from "../context/PmgAlgoContext";
 
 const style = {
   position: "absolute",
@@ -100,6 +101,7 @@ export const ConfigModal = ({ open, setOpen }) => {
     powerBlockAllocationSize: parseInt(""),
     thresholdLowOffsetParameter: parseInt(""),
     thresholdHighOffsetParameter: parseInt(""),
+    minimumPowerPerConnector: parseInt(""),
     connectorsDetails: [
       {
         CSMaxPower: parseInt(""),
@@ -115,6 +117,9 @@ export const ConfigModal = ({ open, setOpen }) => {
   };
   const [initialValuesObj, setInitialValuesObj] = useState(initialValues);
   const divRef = useRef();
+
+  const pmgContext = useContext(PmgPowerValuesContext);
+
   const handleSubmit = (values) => {
     setOpen(false);
     const pmgSettings = {
@@ -124,8 +129,9 @@ export const ConfigModal = ({ open, setOpen }) => {
       powerBlockAllocationSize: parseInt(values.powerBlockAllocationSize),
       thresholdLowOffsetParameter: parseInt(values.thresholdLowOffsetParameter),
       thresholdHighOffsetParameter: parseInt(
-        values.thresholdHighOffsetParameter
+        values.thresholdHighOffsetParameter,
       ),
+      minimumPowerPerConnector: parseInt(values.minimumPowerPerConnector),
     };
     // debugger;
     const connectorsDetails = values.connectorsDetails;
@@ -134,23 +140,32 @@ export const ConfigModal = ({ open, setOpen }) => {
       connectorsDetails,
     };
     localStorage.setItem("pmgObj", JSON.stringify(pmgObj));
+    console.log("configModal =>> ", pmgObj);
+    
+    pmgContext.updateTotalPower(pmgObj.pmgSettings.pmgMaxPower);
     window.location.reload();
   };
 
   useEffect(() => {
     var pmgObj = JSON.parse(localStorage.getItem("pmgObj"));
-
+    const {
+      pmgId,
+      pmgMaxPower,
+      settleTimeParameter,
+      powerBlockAllocationSize,
+      thresholdLowOffsetParameter,
+      thresholdHighOffsetParameter,
+      minimumPowerPerConnector,
+    } = pmgObj.pmgSettings;
     if (pmgObj) {
       setInitialValuesObj({
-        pmgId: pmgObj.pmgSettings.pmgId || "",
-        pmgMaxPower: pmgObj.pmgSettings.pmgMaxPower || "",
-        settleTimeParameter: pmgObj.pmgSettings.settleTimeParameter || "",
-        powerBlockAllocationSize:
-          pmgObj.pmgSettings.powerBlockAllocationSize || "",
-        thresholdLowOffsetParameter:
-          pmgObj.pmgSettings.thresholdLowOffsetParameter || "",
-        thresholdHighOffsetParameter:
-          pmgObj.pmgSettings.thresholdHighOffsetParameter || "",
+        pmgId: pmgId || "",
+        pmgMaxPower: pmgMaxPower || "",
+        settleTimeParameter: settleTimeParameter || "",
+        powerBlockAllocationSize: powerBlockAllocationSize || "",
+        thresholdLowOffsetParameter: thresholdLowOffsetParameter || "",
+        thresholdHighOffsetParameter: thresholdHighOffsetParameter || "",
+        minimumPowerPerConnector: minimumPowerPerConnector || "",
         connectorsDetails: pmgObj.connectorsDetails || [],
       });
     }
@@ -214,7 +229,7 @@ export const ConfigModal = ({ open, setOpen }) => {
                         return Yup.number()
                           .min(
                             parseInt(chargingStartedAt) + 1,
-                            "ChargingStoppedAt must be greater than chargingStartedAt"
+                            "ChargingStoppedAt must be greater than chargingStartedAt",
                           )
                           .typeError("ChargingStoppedAt must be a number")
                           .required("ChargingStoppedAt is Required");
@@ -224,7 +239,7 @@ export const ConfigModal = ({ open, setOpen }) => {
                   chargeStationId: Yup.number()
                     .typeError("ChargeStationId must be a number")
                     .required("ChargeStationId is Required"),
-                })
+                }),
               ),
             })}
           >
@@ -290,7 +305,7 @@ export const ConfigModal = ({ open, setOpen }) => {
                           onChange={(value) => {
                             setFieldValue(
                               "settleTimeParameter",
-                              value.target.value
+                              value.target.value,
                             );
                           }}
                           value={values?.settleTimeParameter}
@@ -317,7 +332,7 @@ export const ConfigModal = ({ open, setOpen }) => {
                           onChange={(value) => {
                             setFieldValue(
                               "powerBlockAllocationSize",
-                              value.target.value
+                              value.target.value,
                             );
                           }}
                           value={parseInt(values?.powerBlockAllocationSize)}
@@ -344,7 +359,7 @@ export const ConfigModal = ({ open, setOpen }) => {
                           onChange={(value) => {
                             setFieldValue(
                               "thresholdLowOffsetParameter",
-                              value.target.value
+                              value.target.value,
                             );
                           }}
                           value={parseInt(values?.thresholdLowOffsetParameter)}
@@ -371,7 +386,7 @@ export const ConfigModal = ({ open, setOpen }) => {
                           onChange={(value) => {
                             setFieldValue(
                               "thresholdHighOffsetParameter",
-                              value.target.value
+                              value.target.value,
                             );
                           }}
                           value={parseInt(values?.thresholdHighOffsetParameter)}
@@ -379,6 +394,33 @@ export const ConfigModal = ({ open, setOpen }) => {
                         {errors.thresholdHighOffsetParameter ? (
                           <div style={{ color: "red" }}>
                             {errors.thresholdHighOffsetParameter}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="col-md-4 col-sm-6 col-12 p-1 mb-2 d-flex justify-content-center align-items-start">
+                      <div className="w-100">
+                        <TextField
+                          id="outlined-basic"
+                          label="MinimumPowerPerConnector"
+                          variant="outlined"
+                          type="number"
+                          name="minimumPowerPerConnector"
+                          size="small"
+                          fullWidth
+                          disabled={historyCheck}
+                          sx={getPmgSettingsTextFieldStyles()}
+                          onChange={(value) => {
+                            setFieldValue(
+                              "minimumPowerPerConnector",
+                              value.target.value,
+                            );
+                          }}
+                          value={parseInt(values?.minimumPowerPerConnector)}
+                        />
+                        {errors.minimumPowerPerConnector ? (
+                          <div style={{ color: "red" }}>
+                            {errors.minimumPowerPerConnector}
                           </div>
                         ) : null}
                       </div>
@@ -445,7 +487,7 @@ export const ConfigModal = ({ open, setOpen }) => {
                                             `connectorsDetails[${index}].connectorId`,
                                             isNaN(value.target.valueAsNumber)
                                               ? null
-                                              : value.target.valueAsNumber
+                                              : value.target.valueAsNumber,
                                           );
                                         }}
                                         value={parseInt(connector?.connectorId)}
@@ -481,7 +523,7 @@ export const ConfigModal = ({ open, setOpen }) => {
                                             `connectorsDetails[${index}].CSMaxPower`,
                                             isNaN(value.target.valueAsNumber)
                                               ? null
-                                              : value.target.valueAsNumber
+                                              : value.target.valueAsNumber,
                                           );
                                         }}
                                         value={parseInt(connector?.CSMaxPower)}
@@ -517,11 +559,11 @@ export const ConfigModal = ({ open, setOpen }) => {
                                             `connectorsDetails[${index}].connectorMaxPower`,
                                             isNaN(value.target.valueAsNumber)
                                               ? null
-                                              : value.target.valueAsNumber
+                                              : value.target.valueAsNumber,
                                           );
                                         }}
                                         value={parseInt(
-                                          connector?.connectorMaxPower
+                                          connector?.connectorMaxPower,
                                         )}
                                       />
                                       {errors.connectorsDetails &&
@@ -555,11 +597,11 @@ export const ConfigModal = ({ open, setOpen }) => {
                                             `connectorsDetails[${index}].connectorDefaultPower`,
                                             isNaN(value.target.valueAsNumber)
                                               ? null
-                                              : value.target.valueAsNumber
+                                              : value.target.valueAsNumber,
                                           );
                                         }}
                                         value={parseInt(
-                                          connector?.connectorDefaultPower
+                                          connector?.connectorDefaultPower,
                                         )}
                                       />
                                       {errors.connectorsDetails &&
@@ -593,11 +635,11 @@ export const ConfigModal = ({ open, setOpen }) => {
                                             `connectorsDetails[${index}].chargingStartedAt`,
                                             isNaN(value.target.valueAsNumber)
                                               ? null
-                                              : value.target.valueAsNumber
+                                              : value.target.valueAsNumber,
                                           );
                                         }}
                                         value={parseInt(
-                                          connector?.chargingStartedAt
+                                          connector?.chargingStartedAt,
                                         )}
                                       />
                                       {errors.connectorsDetails &&
@@ -631,11 +673,11 @@ export const ConfigModal = ({ open, setOpen }) => {
                                             `connectorsDetails[${index}].chargingStoppedAt`,
                                             isNaN(value.target.valueAsNumber)
                                               ? null
-                                              : value.target.valueAsNumber
+                                              : value.target.valueAsNumber,
                                           );
                                         }}
                                         value={parseInt(
-                                          connector?.chargingStoppedAt
+                                          connector?.chargingStoppedAt,
                                         )}
                                       />
                                       {errors.connectorsDetails &&
@@ -669,11 +711,11 @@ export const ConfigModal = ({ open, setOpen }) => {
                                             `connectorsDetails[${index}].chargeStationId`,
                                             isNaN(value.target.valueAsNumber)
                                               ? null
-                                              : value.target.valueAsNumber
+                                              : value.target.valueAsNumber,
                                           );
                                         }}
                                         value={parseInt(
-                                          connector?.chargeStationId
+                                          connector?.chargeStationId,
                                         )}
                                       />
                                       {errors.connectorsDetails &&
@@ -709,7 +751,7 @@ export const ConfigModal = ({ open, setOpen }) => {
                                         onClick={() =>
                                           setFieldValue(
                                             `connectorsDetails[${index}].isSaved`,
-                                            !connector.isSaved
+                                            !connector.isSaved,
                                           )
                                         }
                                       >
@@ -810,7 +852,8 @@ export const ConfigModal = ({ open, setOpen }) => {
                                   className="btn saveBtn"
                                   disabled={
                                     values.connectorsDetails.some(
-                                      (connector) => connector.isSaved === false
+                                      (connector) =>
+                                        connector.isSaved === false,
                                     ) || Object.keys(errors).length > 0
                                   }
                                   type="submit"
